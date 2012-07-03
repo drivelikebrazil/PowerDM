@@ -1,16 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ViewFlipper xmlns:android="http://schemas.android.com/apk/res/android"
-	android:id="@+id/vFlipper_initRow"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	android:id="@+id/rLayout_initRow"
 	android:layout_height="match_parent"
 	android:layout_width="match_parent"
+	android:animateLayoutChanges="true"
 	>
 	<TextView android:id="@+id/textView_initRowName"
-		android:layout_height="wrap_content"
+		android:layout_height="match_parent"
 		android:layout_width="match_parent"
 		/>
 	<Button android:id="@+id/button_initRowDelete"
-		android:layout_height="wrap_content"
+		android:layout_height="match_parent"
 		android:layout_width="wrap_content"
+		android:layout_alignParentRight="true"
 		android:text="Delete"
 		/>
-</ViewFlipper>
+</RelativeLayout>

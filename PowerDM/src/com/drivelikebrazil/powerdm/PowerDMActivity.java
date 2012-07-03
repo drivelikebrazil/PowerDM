@@ -1,5 +1,7 @@
 package com.drivelikebrazil.powerdm;
 
+import android.animation.AnimatorInflater;
+import android.animation.LayoutTransition;
 import android.app.Activity;
 import android.os.Bundle;
 import android.content.Context;
@@ -19,12 +21,18 @@ public class PowerDMActivity extends Activity {
 	private int SWIPE_MAX_OFF_PATH;
 	private int SWIPE_THRESHOLD_VELOCITY;
 	private ListView tview;
+	private LayoutTransition deleteTransition;
 	
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
+        
+        deleteTransition = new LayoutTransition();
+        deleteTransition.setAnimator(LayoutTransition.APPEARING, AnimatorInflater.loadAnimator(this, R.animator.expand_in));
+        deleteTransition.setAnimator(LayoutTransition.DISAPPEARING, AnimatorInflater.loadAnimator(this, R.animator.shrink_out));
+        deleteTransition.setDuration(50);
 		
 		DisplayMetrics dm = getResources().getDisplayMetrics();
 		SWIPE_MIN_DISTANCE = (int)(20.0f * dm.densityDpi / 160.0f + 0.5);
@@ -50,19 +58,18 @@ public class PowerDMActivity extends Activity {
 		{
 			String msg = ((InitListAdapter)tview.getAdapter()).getItem(position);
 			
-			Toast.makeText(PowerDMActivity.this, msg, Toast.LENGTH_SHORT);
+			Toast.makeText(PowerDMActivity.this, msg, Toast.LENGTH_SHORT).show();
 		}
 	};
 	
 	private static class InitItemHolder
 	{
 		View row;
-		ViewFlipper flipper;
+		RelativeLayout rowRoot;
 		TextView nameTextView;
 		Button deleteButton;
 		GestureDetector gDetector;
 		SingleTapListener sTapListener;
-		Context cText;
 		
 		int minSwipeDistance;
 		int maxOffPath;
@@ -76,17 +83,21 @@ public class PowerDMActivity extends Activity {
 		InitItemHolder(View row, int position, int minSwipeDist, int maxOff, int velThresh, Context c)
 		{
 			this.row = row;
-			flipper = (ViewFlipper) row.findViewById(R.id.vFlipper_initRow);
+			rowRoot = (RelativeLayout) row.findViewById(R.id.rLayout_initRow);
 			nameTextView = (TextView) row.findViewById(R.id.textView_initRowName);
 			deleteButton = (Button) row.findViewById(R.id.button_initRowDelete);
 			gDetector = new GestureDetector(new HorizontalSwipeDetector());
-			cText = c;
 			this.position = position;
 			sTapListener = null;
 			
 			minSwipeDistance = minSwipeDist;
 			maxOffPath = maxOff;
 			velocityThreshold = velThresh;
+		}
+		
+		public void setLayoutTransition(LayoutTransition lt)
+		{
+			rowRoot.setLayoutTransition(lt);
 		}
 		
 		public void setSingleTapListener(SingleTapListener l)
@@ -135,25 +146,15 @@ public class PowerDMActivity extends Activity {
 			public boolean onScroll(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY)
 			{
 				try{
-					//if (Math.abs(e1.getY() - e2.getY()) > maxOffPath)
-						//return false;
-					if(e1.getX() - e2.getX() > minSwipeDistance /* && Math.abs(velocityX) > velocityThreshold*/)
+					if(e1.getX() - e2.getX() > minSwipeDistance)
 					{
-						if(flipper.getChildAt(flipper.getDisplayedChild()) == nameTextView)
-						{
-							flipper.setInAnimation(cText, R.anim.slide_in_from_right);
-							flipper.setOutAnimation(cText, R.anim.slide_out_to_left);
-							flipper.showNext();
-						}
+						if(deleteButton.getVisibility() == Button.INVISIBLE)
+							deleteButton.setVisibility(Button.VISIBLE);
 					}
-					else if(e2.getX() - e1.getX() > minSwipeDistance /*&& Math.abs(velocityX) > velocityThreshold*/)
+					else if(e2.getX() - e1.getX() > minSwipeDistance)
 					{
-						if(flipper.getChildAt(flipper.getDisplayedChild()) == deleteButton)
-						{
-							flipper.setInAnimation(cText, R.anim.slide_in_from_left);
-							flipper.setOutAnimation(cText, R.anim.slide_out_to_right);
-							flipper.showPrevious();
-						}
+						if( deleteButton.getVisibility() == Button.VISIBLE)
+							deleteButton.setVisibility(Button.INVISIBLE);
 					}
 				} 
 				catch (Exception e)
@@ -194,6 +195,7 @@ public class PowerDMActivity extends Activity {
 				row = inflater.inflate(R.layout.rowlayout_initiative, parent, false);
 				holder = new InitItemHolder(row, position, SWIPE_MIN_DISTANCE, SWIPE_MAX_OFF_PATH, SWIPE_THRESHOLD_VELOCITY, this.getContext());
 				row.setTag(holder);
+				holder.setLayoutTransition(deleteTransition);
 				
 				holder.setSingleTapListener(new InitItemHolder.SingleTapListener(){
 					public void onSingleTap(View v, int position)

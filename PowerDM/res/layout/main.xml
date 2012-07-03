@@ -5,7 +5,7 @@
 	>
 	<ListView android:id="@+id/listView_initiative"
 		android:layout_height="match_parent"
-		android:layout_width="wrap_content"
+		android:layout_width="300dip"
 		android:layout_alignParentLeft="true"
 		/>
 	
